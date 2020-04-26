@@ -32,7 +32,14 @@ CMake version 3.14 or higher must be installed.
 
 ## Configuration
 
-None.
+It is possible to override C/C++ (cpptools) configuration in the settings:
+
+- `CMakeLite.override.intelliSenseMode`: `intelliSenseMode`
+- `CMakeLite.override.compilerPath`: `compilerPath`
+- `CMakeLite.override.cppStandard`: `cppStandard`
+- `CMakeLite.override.cStandard`: `cStandard`
+
+See [IntelliSense configuration](https://code.visualstudio.com/docs/cpp/customize-default-settings-cpp) from the C/C++ extension for more information.
 
 ## Commands
 
