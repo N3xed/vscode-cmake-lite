@@ -3,7 +3,7 @@
     "displayName": "CMake Lite",
     "description": "Lighweight CMake support in Visual Studio Code",
     "icon": "img/icon.png",
-    "version": "0.1.1",
+    "version": "0.2.0",
     "license": "MIT",
     "author": {
         "name": "Kin Numaru"
