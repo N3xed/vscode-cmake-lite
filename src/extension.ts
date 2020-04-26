@@ -87,9 +87,12 @@ export class Extension extends vscode.Disposable {
         const results = await Promise.all(uris.map(async u => {
             try {
                 const reply = CMakeProject.getReplyDirectory(u).fsPath;
-                const tuple: [Date, vscode.Uri] = [fs.readdirSync(reply)
-                    .map(d => fs.statSync(npath.join(reply, d)).mtime)
-                    .sort((a, b) => b.getTime() - a.getTime())[0], u];
+                const lastDates = fs.readdirSync(reply)
+                    .map(d =>
+                        fs.statSync(npath.join(reply, d)).mtime
+                    )
+                    .sort((a, b) => b.getTime() - a.getTime());
+                const tuple: [Date, vscode.Uri] = [lastDates[0], u];
                 return tuple;
             } catch (e) {
                 if (e.code !== "ENOENT") {
@@ -97,7 +100,13 @@ export class Extension extends vscode.Disposable {
                 }
             }
         }));
-        const stats = results.filter(x => !!x) as Array<[Date, vscode.Uri]>;
+
+        const stats = results.filter(x => x && x[0]) as Array<[Date, vscode.Uri]>;
+        if (stats.length === 0) {
+            log.error("Could not activate the last project: No last project found.");
+            return;
+        }
+
         const lastStat = stats
             .sort((a, b) => b[0].getTime() - a[0].getTime())[0];
         if (lastStat) this.activateProject(lastStat[1]);
