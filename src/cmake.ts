@@ -6,6 +6,7 @@ import { SourceFileConfigurationItem, WorkspaceBrowseConfiguration } from "vscod
 
 import { Extension } from "./extension";
 import { createLogger } from "./logging";
+import { Settings } from "./settings";
 
 const log = createLogger("cmake");
 
@@ -19,6 +20,7 @@ export class CMakeProject extends vscode.Disposable {
     private readonly _uri: vscode.Uri;
     private readonly _extension: Extension;
     private readonly _watcher: CMakeReplyWatcher;
+    private readonly _settings: Settings;
     private _sourceFileConfigurationItems: SourceFileConfigurationItem[];
     private _workspaceBrowseConfiguration: WorkspaceBrowseConfiguration;
 
@@ -27,11 +29,14 @@ export class CMakeProject extends vscode.Disposable {
         this._uri = uri;
         this._extension = extension;
         this._watcher = new CMakeReplyWatcher(() => { }, () => this.updateConfigurations());
+        this._settings = extension.settings;
         this._sourceFileConfigurationItems = [];
         this._workspaceBrowseConfiguration = { browsePath: ["${workspaceFolder}"] };
         log.info(`Start watching the project: ${this._uri.fsPath}`);
         this.watchResult();
         this.updateConfigurations();
+
+        this._settings.onChange(() => { this.updateConfigurations(); });
     }
 
     get uri(): vscode.Uri {
@@ -95,7 +100,10 @@ export class CMakeProject extends vscode.Disposable {
     private async updateConfigurations(): Promise<void> {
         log.info("Update the configuration of the current project");
         const index = await this.readReply();
-        if (index === undefined) return;
+        if (index === undefined) {
+            log.error("Could not find build environment information: Please reconfigure your project and try again.");
+            return;
+        }
         const codemodel = index["reply"][CLIENT_KEY]["query.json"].responses
             .find((r: any) => r.kind === "codemodel");
         let configuration = codemodel.data.configurations
@@ -177,6 +185,9 @@ export class CMakeProject extends vscode.Disposable {
     }
 
     private getCompilerPath(index: any): string | undefined {
+        if (this._settings.override.compilerPath !== null)
+            return this._settings.override.compilerPath;
+
         const cache = index["reply"][CLIENT_KEY]["query.json"].responses
             .find((r: any) => r.kind === "cache");
         if (cache === undefined) return;
@@ -209,6 +220,9 @@ export class CMakeProject extends vscode.Disposable {
     }
 
     private getIntelliSenseMode(index: any): IntelliSenseMode {
+        if (this._settings.override.intelliSenseMode)
+            return this._settings.override.intelliSenseMode;
+
         if (process.platform === "win32") {
             return "msvc-x64";
         } else if (process.platform === "darwin") {
@@ -219,12 +233,36 @@ export class CMakeProject extends vscode.Disposable {
     }
 
     private getTopStandard(index: any): Standard {
+        switch (this.getUsedLanguage(index)) {
+            case "C":
+                if (this._settings.override.cStandard)
+                    return this._settings.override.cStandard;
+                break;
+
+            case "CXX":
+                if (this._settings.override.cppStandard)
+                    return this._settings.override.cppStandard;
+                break;
+        }
+
         const defaultStandard = this.getUsedLanguage(index) === "C" ? "c11" : "c++20";
         // TODO(knu) Find the standard based on the compiler flags
         return defaultStandard;
     }
 
     private getStandard(index: any, group: any): Standard {
+        switch (this.getUsedLanguage(index)) {
+            case "C":
+                if (this._settings.override.cStandard)
+                    return this._settings.override.cStandard;
+                break;
+
+            case "CXX":
+                if (this._settings.override.cppStandard)
+                    return this._settings.override.cppStandard;
+                break;
+        }
+
         const defaultStandard = group.language === "C" ? "c11" : "c++20";
         // TODO(knu) Find the standard based on the compiler flags
         return defaultStandard;

@@ -6,6 +6,7 @@ import { LoggingChannel, createLogger } from "./logging";
 import { CMakeProject } from "./cmake";
 import { CppToolsLink } from "./cpptools";
 import { ProjectPicker, PickerItem } from "./projectPicker";
+import { Settings } from "./settings";
 
 const log = createLogger("extension");
 
@@ -21,6 +22,7 @@ export async function deactivate() {
 }
 
 export class Extension extends vscode.Disposable {
+    public readonly settings: Settings;
     private readonly _context: vscode.ExtensionContext;
     private readonly _picker: ProjectPicker;
     private readonly _link: CppToolsLink;
@@ -28,6 +30,7 @@ export class Extension extends vscode.Disposable {
 
     constructor(callOnDispose: Function, context: vscode.ExtensionContext) {
         super(callOnDispose);
+        this.settings = new Settings();
         this._context = context;
         this._project = undefined;
         this._picker = new ProjectPicker(() => { }, this);
