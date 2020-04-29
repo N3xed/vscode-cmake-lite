@@ -202,20 +202,26 @@ export class CMakeProject extends vscode.Disposable {
         if (cache === undefined) return;
         const lang = this.getUsedLanguage(index);
         const buildType = this.getBuildType(index);
-        const args = cache.data.entries
+        const args: Array<string> = cache.data.entries
             .filter((e: any) => [`CMAKE_${lang}_FLAGS`, `CMAKE_${lang}_FLAGS_${buildType.toUpperCase()}`].includes(e.name))
             .map((f: any) => f.value.split(" "))
             .flat()
             .filter((f: string) => f !== "");
+        
+        if(this._settings.override.filterCompilerArgs instanceof RegExp)
+            return args.filter((str) => !(this._settings.override.filterCompilerArgs as RegExp).test(str));
         return args;
     }
 
     private getCompilerArgs(index: any, group: any): string[] | undefined {
-        const args = group.compileCommandFragments
+        const args: Array<string> | undefined = group.compileCommandFragments
             ?.filter((x: any) => x.role === undefined || x.role === "flags")
             .map((x: any) => x.fragment.split(" "))
             .flat()
             .filter((x: string) => x !== "");
+
+        if(this._settings.override.filterCompilerArgs instanceof RegExp)
+            return args?.filter((str) => !(this._settings.override.filterCompilerArgs as RegExp).test(str));
         return args;
     }
 

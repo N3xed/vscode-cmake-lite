@@ -3,7 +3,7 @@
     "displayName": "CMake Lite",
     "description": "Lighweight CMake support in Visual Studio Code",
     "icon": "img/icon.png",
-    "version": "0.2.0",
+    "version": "0.2.1",
     "license": "MIT",
     "author": {
         "name": "Kin Numaru"
@@ -38,6 +38,11 @@
         "configuration": {
             "title": "CMake Lite",
             "properties": {
+                "CMakeLite.override.filterCompilerArgs": {
+                    "type": ["string", "null"],
+                    "markdownDescription": "A regular expression that filters the compilerArgs.",
+                    "default": null
+                },
                 "CMakeLite.override.intelliSenseMode": {
                     "type": "string",
                     "enum": [

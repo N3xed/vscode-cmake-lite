@@ -38,6 +38,10 @@ It is possible to override C/C++ (cpptools) configuration in the settings:
 - `CMakeLite.override.compilerPath`: `compilerPath`
 - `CMakeLite.override.cppStandard`: `cppStandard`
 - `CMakeLite.override.cStandard`: `cStandard`
+- `CMakeLite.override.filterCompilerArgs`  
+  A string that will be used as a regular expression.
+  Any compilerArgs that test positively with this regular expression will
+  be removed and not sent to the C/C++ extension.
 
 See [IntelliSense configuration](https://code.visualstudio.com/docs/cpp/customize-default-settings-cpp) from the C/C++ extension for more information.
 

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { createLogger } from "./logging";
-import { resolveVariables } from "./common";
+import { resolveVariables, isString } from "./common";
 
 const log = createLogger("settings");
 
@@ -9,6 +9,7 @@ export interface OverrideSettings {
     cppStandard: "c++98" | "c++03" | "c++11" | "c++14" | "c++17" | "c++20" | null;
     cStandard: "c89" | "c99" | "c11" | null;
     compilerPath: string | null;
+    filterCompilerArgs: RegExp | null;
 }
 
 export class Settings implements vscode.Disposable {
@@ -30,11 +31,12 @@ export class Settings implements vscode.Disposable {
             intelliSenseMode: null,
             cppStandard: null,
             cStandard: null,
-            compilerPath: null
+            compilerPath: null,
+            filterCompilerArgs: null
         };
         this._onChange = new vscode.EventEmitter<Settings>();
         this._onDidChangeConfiguration = vscode.workspace.onDidChangeConfiguration(this.onDidChangeConfigurationHandler, this);
-        
+
         this.update();
     }
     dispose() {
@@ -50,6 +52,9 @@ export class Settings implements vscode.Disposable {
         this._override.cppStandard = cfg.get("cppStandard") ?? null;
         this._override.cStandard = cfg.get("cStandard") ?? null;
         this._override.compilerPath = resolveVariables(cfg.get("compilerPath")) ?? null;
+
+        const filterCompilerArgs: string | null = cfg.get("filterCompilerArgs") ?? null;
+        this._override.filterCompilerArgs = isString(filterCompilerArgs) ? new RegExp(filterCompilerArgs) : null;
 
         log.info(JSON.stringify(this, undefined, 4));
         this._onChange.fire(this);
